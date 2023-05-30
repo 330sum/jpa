@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
-//@Rollback(false) // 실무에서는 true, 지금은 db에 저장되는지 확인 위해서 false
+@Rollback(false) // 실무에서는 true, 지금은 db에 저장되는지 확인 위해서 false
 class ProductRepositoryTest {
 
     @Autowired
