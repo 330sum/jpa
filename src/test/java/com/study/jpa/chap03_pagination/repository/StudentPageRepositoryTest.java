@@ -52,7 +52,13 @@ class StudentPageRepositoryTest {
         // 페이지 정보 생성
 //        PageRequest pageInfo = PageRequest.of(pageNo, amount);
         // 인터페이스로 구현하고 있어서 Pageable로 가능
-        Pageable pageInfo = PageRequest.of(pageNo -1, amount, Sort.by("name").descending());
+        Pageable pageInfo = PageRequest.of(pageNo -1, amount,
+                //Sort.by("name").descending() // 정렬기준 필드명
+                Sort.by (
+                        Sort.Order.desc("name"),
+                        Sort.Order.asc("city")
+                )
+        );
         /*
             *** pageNo -1
             주의사항 : 페이지번호가 zero-based
@@ -90,6 +96,22 @@ class StudentPageRepositoryTest {
         System.out.println("paged = " + paged);
         System.out.println("\n\n\n");
         studentList.forEach(System.out::println);
+        System.out.println("\n\n\n");
+    }
+
+    @Test
+    @DisplayName("이름에 숫자 3들어간 애들 검색 + 페이징")
+    void testSearchAndPagination() {
+        //given
+        int PageNo = 1;
+        int size = 10;
+        Pageable pageInfo = PageRequest.of(PageNo - 1, size);
+        //when
+        Page<Student> students = studentPageRepository.findByNameContaining("3", pageInfo);
+
+        //then
+        System.out.println("\n\n\n");
+        students.getContent().forEach(System.out::println);
         System.out.println("\n\n\n");
     }
 

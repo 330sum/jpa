@@ -12,6 +12,7 @@ public interface StudentPageRepository extends JpaRepository<Student, String> {
 
     // 학생 전체조회 (조건 있음 - 학생이름에 특정단어 포함 + 페이징 (즉, 검색 + 페이징) )
     Page<Student> findByNameContaining(String name, Pageable pageable);
+    // findByCityContaining 같은거 만들어도 됨
 
 
 
