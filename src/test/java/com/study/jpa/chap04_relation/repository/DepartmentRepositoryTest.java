@@ -6,10 +6,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
+@Rollback(false)
 class DepartmentRepositoryTest {
 
     @Autowired
@@ -33,12 +39,11 @@ class DepartmentRepositoryTest {
         System.out.println("\n\n\n");
     }
 
+
     @Test
     @DisplayName("Lazy로딩과 Eager로딩의 차이")
     void testLazyAndEager() {
-        // 3번 사원을 조회하고 싶은데 굳이 부서정보는 필요없다. (조인필요없음)
-        // 근데 jpa가 조인함 -> Eager로딩 (기본값임)
-        // 그래서 LAZY로 바꿔줘야함
+        // 3번 사원을 조회하고 싶은데 굳이 부서정보는 필요없다.
         //given
         Long id = 3L;
         //when
@@ -47,12 +52,39 @@ class DepartmentRepositoryTest {
 
         //then
         System.out.println("\n\n\n");
-//        System.out.println("employee = " + employee);
-        // 명시적으로
+        System.out.println("employee = " + employee);
         System.out.println("employee.getDepartment() = " + employee.getDepartment());
         System.out.println("\n\n\n");
     }
 
+    @Test
+    @DisplayName("양방향 연관관계에서 연관데이터의 수정")
+    void testChangeDept() {
+        // 3번사원의 부서를 2번부서에 1번부서로 변경해야 한다.
+        //given
+        Employee foundEmp = employeeRepository.findById(3L)
+                .orElseThrow();
 
+        Department newDept = departmentRepository.findById(1L)
+                .orElseThrow();
 
+        // 사원쪽에서 부서만 변경하는게 아니라
+        foundEmp.setDepartment(newDept);
+//        newDept.getEmployees().add(foundEmp);
+
+        employeeRepository.save(foundEmp);
+        //when
+
+        // 1번 부서 정보를 조회해서 모든 사원을 보겠다.
+        Department foundDept = departmentRepository.findById(1L)
+                .orElseThrow();
+
+        System.out.println("\n\n\n");
+
+        foundDept.getEmployees().forEach(System.out::println);
+
+        System.out.println("\n\n\n");
+
+        //then
+    }
 }

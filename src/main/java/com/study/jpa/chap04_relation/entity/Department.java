@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 //@ToString
 // jpa연관관계 매핑에서는 연관관계 데이터는 ToString에서 제외해야 한다 -> 자기자신 컬럼만 찍으라는 거 (남의것 찍지마)
-@ToString(exclude = {"employee"})
+@ToString(exclude = {"employees"})
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @AllArgsConstructor
