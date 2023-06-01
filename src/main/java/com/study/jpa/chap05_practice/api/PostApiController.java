@@ -1,4 +1,4 @@
-package com.study.jpa.chap05_practice.Controller;
+package com.study.jpa.chap05_practice.api;
 
 import com.study.jpa.chap05_practice.Service.PostService;
 import lombok.RequiredArgsConstructor;
