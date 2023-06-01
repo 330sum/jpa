@@ -41,7 +41,16 @@ public class Post {
 
     // 아래는 디비저장용도 아니고, 조회용으로 사용하는 JPA 연관관계
     @OneToMany(mappedBy = "post")
+    @Builder.Default // 초기화해도, 빌더인경우 이 아노테이션 써서 초기화시켜줘야함
     private List<HashTag> hashTags = new ArrayList<>();
+
+    // 양방향 매핑에서 리스트쪽에 데이터를 추가하는 편의메서드 생성
+    public void addHashTag(HashTag hashTag) {
+        hashTags.add(hashTag);
+        if (this != hashTag.getPost()) {
+            hashTag.setPost(this);
+        }
+    }
 
 
 
