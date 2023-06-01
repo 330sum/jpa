@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -87,4 +89,50 @@ class DepartmentRepositoryTest {
 
         //then
     }
+
+
+    @Test
+    @DisplayName("N+1 문제 발생 예시")
+    void testNPlus1Ex() {
+        // 부서별로 모든 사원 정보 조회 (조인필요 -> 근데 안함-_-)
+        // 부서 2개면 쿼리가 3개 나감. 조인하면 빠른데, 쿼리가 3개임. (부서정보조회 1개, 사원 - 1번부서 1개, 사원 - 2번부서 1개)
+        //given
+        List<Department> departments = departmentRepository.findAll();
+        //when
+        departments.forEach(dept -> {
+            System.out.println("\n\n======== 사원 리스트 ========\n\n");
+
+            List<Employee> employees = dept.getEmployees();
+            System.out.println(employees);
+
+            System.out.println("\n\n============================\n\n");
+        });
+
+        //then
+    }
+
+
+    @Test
+    @DisplayName("N+1 문제 해결 예시")
+    void testNPlus1Solution() {
+        // fetch join 사용하면 쿼리문이 1개 나감
+        // 근데, cross join 되서 1번 부서가 여러번 나옴. 그래서 JPQL에 DISTINCT 추가하기!
+        // 나중에 JPADSL? 사용하면 JPQL말고 자바코드로 작성할 수 있음
+        // 페이징 조회는 fetch join이 성능이 확실히 좋음. 근데, 그외는 N+1이 더 성능이 좋을 수 도 있음
+        //given
+        List<Department> departments = departmentRepository.findAllIncludeEmployees();
+        //when
+        departments.forEach(dept -> {
+            System.out.println("\n\n======== 사원 리스트 ========\n\n");
+
+            List<Employee> employees = dept.getEmployees();
+            System.out.println(employees);
+
+            System.out.println("\n\n============================\n\n");
+        });
+
+        //then
+    }
+
+
 }
