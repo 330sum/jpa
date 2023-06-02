@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,12 +57,17 @@ public class PostService {
 
     public PostDetailResponseDTO getDetail(Long id) {
 
+        Post postEntity = getPost(id);
+
+        return new PostDetailResponseDTO(postEntity);
+    }
+
+    private Post getPost(Long id) {
         Post postEntity = postRepository.findById(id)
                 .orElseThrow(
                         () -> new RuntimeException(id + "번 게시물 존재하지 않음")
                 );
-
-        return new PostDetailResponseDTO(postEntity);
+        return postEntity;
     }
 
     public PostDetailResponseDTO insert(final PostCreateDTO dto) throws RuntimeException {
@@ -86,4 +92,23 @@ public class PostService {
         return new PostDetailResponseDTO(saved);
     }
 
+
+    public PostDetailResponseDTO modify(final PostModifyDTO dto) {
+
+        // 수정 : 조회 -> 세터 -> save
+        // 수정 전 데이터를 조회
+        final Post postEntity = getPost(dto.getPostNo());
+        // 세터
+        postEntity.setTitle(dto.getTitle());
+        postEntity.setContent(dto.getContent());
+        // save
+        Post modifiedPost = postRepository.save(postEntity);
+
+        return new PostDetailResponseDTO(modifiedPost);
+    }
+
+    public void delete(Long id) throws RuntimeException, SQLException {
+
+        postRepository.deleteById(id);
+    }
 }

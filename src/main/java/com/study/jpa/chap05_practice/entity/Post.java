@@ -40,7 +40,7 @@ public class Post {
     private LocalDateTime updateDate; // 수정시간
 
     // 아래는 디비저장용도 아니고, 조회용으로 사용하는 JPA 연관관계
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", orphanRemoval = true) // orphanRemoval: 부모(post)가없는 자식(hashTag)객체를 삭제
     @Builder.Default // 초기화해도, 빌더인경우 이 아노테이션 써서 초기화시켜줘야함
     private List<HashTag> hashTags = new ArrayList<>();
 

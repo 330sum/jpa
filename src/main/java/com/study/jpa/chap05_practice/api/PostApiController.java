@@ -1,10 +1,7 @@
 package com.study.jpa.chap05_practice.api;
 
 import com.study.jpa.chap05_practice.Service.PostService;
-import com.study.jpa.chap05_practice.dto.PageDTO;
-import com.study.jpa.chap05_practice.dto.PostCreateDTO;
-import com.study.jpa.chap05_practice.dto.PostDetailResponseDTO;
-import com.study.jpa.chap05_practice.dto.PostListResponseDTO;
+import com.study.jpa.chap05_practice.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -32,7 +30,7 @@ public class PostApiController {
 
     private final PostService postService;
 
-    // 전체조회
+    /* 전체조회 */
     @GetMapping
     public ResponseEntity<?> list(PageDTO pageDTO) {
         log.info("/api/v1/posts?page={}&size={}", pageDTO.getPage(), pageDTO.getSize()); // 몇페이지를 몇개씩보여줘
@@ -44,7 +42,7 @@ public class PostApiController {
         return ResponseEntity.ok().body(dto);
     }
 
-    // 개별조회
+    /* 개별조회 */
     @GetMapping("/{id}")
     public ResponseEntity<?> detail(@PathVariable Long id) {
         log.info("/api/v1/posts/{} GET", id);
@@ -58,7 +56,7 @@ public class PostApiController {
 
     }
 
-    // 게시물등록
+    /* 게시물등록 */
     @PostMapping
     public ResponseEntity<?> create(
             @Validated @RequestBody PostCreateDTO dto
@@ -70,15 +68,8 @@ public class PostApiController {
             return ResponseEntity.badRequest().body("등록 게시물 정보를 전달해주세요");
         }
 
-        if(result.hasErrors()) { // 입력값 검증에 걸림
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            fieldErrors.forEach(err -> {
-                log.warn(dto.toString());
-            });
-
-            return ResponseEntity.badRequest().body(fieldErrors);
-
-        }
+        ResponseEntity<List<FieldError>> fieldErrors = getValidatedResult(result);
+        if (fieldErrors != null) return fieldErrors;
 
         // 서비스의 insert RuntimeException 받음
         try {
@@ -88,6 +79,56 @@ public class PostApiController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("미안 서버 터짐 원인:" + e.getMessage());
         }
+    }
+
+    private static ResponseEntity<List<FieldError>> getValidatedResult(BindingResult result) {
+        if(result.hasErrors()) { // 입력값 검증에 걸림
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            fieldErrors.forEach(err -> {
+                log.warn("invalid client data - {}", err.toString());
+            });
+
+            return ResponseEntity.badRequest().body(fieldErrors);
+        }
+        return null;
+    }
+
+    /* 수정 */
+    // 스프링에서는 DTO를 쓰기때문에 객체가 갈아끼워져서 PUT과 PATCH의 차이가 없음
+    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.PATCH})
+    public ResponseEntity<?> update(@Validated @RequestBody PostModifyDTO dto
+                                    , BindingResult result
+                                    , HttpServletRequest request) {
+
+        log.info("/api/v1/posts {}!! - dto: {}", request.getMethod(), dto);
+
+        ResponseEntity<List<FieldError>> fieldErrors = getValidatedResult(result);
+        if (fieldErrors != null) return fieldErrors;
+
+        try {
+            PostDetailResponseDTO responseDTO = postService.modify(dto);
+            return ResponseEntity.ok(responseDTO);
+            // 헤더없으면 ok 안에 넣어도 됨
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+
+    }
+
+    /* 삭제 */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        log.info("\"/api/v1/posts/{}  DELETE!! ", id);
+
+        try {
+            postService.delete(id);
+            return ResponseEntity.ok("DEL SUCCESS!!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+
     }
 
 
